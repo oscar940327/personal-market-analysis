@@ -83,10 +83,10 @@ def main():
     )
 
     # ===== Step 5: 輸出 =====
+    report_dir = ROOT / "report"
+    report_dir.mkdir(parents=True, exist_ok=True)
     if args.preview or args.no_email:
         # 存成檔案
-        report_dir = ROOT / "report"
-        report_dir.mkdir(parentos=True, exist_ok=True)
         output_path = report_dir / f"report_{today}.html"
         output_path.write_text(html, encoding="utf-8")
         print(f"\n💾 Report saved to: {output_path}")

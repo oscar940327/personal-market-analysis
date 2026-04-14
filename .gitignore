@@ -7,3 +7,4 @@ data/cache/
 *.db
 outputs/
 logs/
+tests/
