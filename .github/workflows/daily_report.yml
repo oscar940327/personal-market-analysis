@@ -39,7 +39,28 @@ jobs:
           LLM_MODEL=openrouter/deepseek/deepseek-chat-v3-0324
           EOF
 
+      - name: Verify config/.env (no secret values)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from dotenv import dotenv_values
+
+          p = Path("config/.env")
+          print("config/.env exists:", p.exists())
+          if p.exists():
+              print("config/.env size:", p.stat().st_size)
+
+          vals = dotenv_values(p) if p.exists() else {}
+          for k in ["TAVILY_API_KEY", "OPENROUTER_API_KEY", "LLM_MODEL"]:
+              v = vals.get(k)
+              print(k, "SET" if v else "MISSING")
+          PY
+
       - name: Run daily report
+        env:
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_MODEL: openrouter/deepseek/deepseek-chat-v3-0324
         run: |
           python pipeline/daily_report.py --preview --no-email
 
