@@ -337,4 +337,4 @@ if __name__ == "__main__":
     print("\nTo embed in README, add:")
     print("  ![Returns Comparison](docs/images/returns_comparison.png)")
     print("  ![Return vs Drawdown](docs/images/return_vs_drawdown.png)")
-    print("  ![TSLA Case Study](docs/images/tsla_bear_market_case.png)")
+    print("  ![TSLA Case Study](docs/images/tsla_bear_market_case.png)") 
