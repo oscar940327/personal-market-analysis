@@ -23,6 +23,9 @@ The system was built to rigorously test whether **LLM-based sentiment signals im
 
 ## Key Findings
 
+Three empirical findings drove major design pivots during development. Each finding represents a falsified hypothesis.
+
+![4-Year Cross-Bear-Market Comparison](docs/images/returns_comparison.png)
 
 ### 1. LLM sentiment filtering hurts more than it helps
 
@@ -36,6 +39,8 @@ A 4-year backtest across 14 stocks showed that adding LLM sentiment as an entry 
 
 ### 2. Regime sizing reduces drawdown but sacrifices returns
 
+![Return vs Drawdown Trade-off](docs/images/return_vs_drawdown.png)
+
 The market-regime-based position sizer (80% bull / 50% neutral / 20% bear) **reduced average max drawdown by 10.74 percentage points**, but at the cost of 61% lower cumulative returns. The regime system is slow to scale back up during bear-to-bull transitions, missing rebound rallies.
 
 | Strategy | Max Drawdown | Avg Return |
@@ -45,7 +50,7 @@ The market-regime-based position sizer (80% bull / 50% neutral / 20% bear) **red
 
 ### 3. LLM sentiment scoring is non-deterministic
 
-This finding was accidental. While debugging a different issue, I re-ran the exact same backfill twice — same model, same `temperature=0.1`, same news data, same prompts — and got materially different average backtest returns across the two runs, with individual ticker results varying substantially. The discrepancy was large enough that it could plausibly explain any "improvement" I had previously attributed to sentiment filtering.
+This finding was accidental. While debugging a different issue, I re-ran the exact same backfill twice — same model, same `temperature=0.1`, same news data, same prompts — and got average backtest returns differing by **3.61%** (one run gave +60%, the other +56%). Individual ticker results varied by up to 20%.
 
 The implication was uncomfortable: if identical runs produce different backtest results, then any "improvement" from LLM sentiment over baseline might be noise rather than signal. This invalidated several earlier experiments and forced a redesign.
 
@@ -121,6 +126,8 @@ The resolution was a **hybrid engine**: FinBERT (deterministic, free, 100% repro
 ---
 
 ## Experimental Results
+
+![TSLA Case Study](docs/images/tsla_bear_market_case.png)
 
 ### Cross-Bear-Market Comparison (2022-01 to 2026-04, 14 stocks)
 
@@ -253,15 +260,14 @@ oscar-market-analyst/
 │   └── daily_report.py        # Main entry point
 ├── tests/
 │   └── test_phase4c_comparison.py  # Three-way backtest
-├── docs/
-│   ├── experimental_results.md   # Full experimental report
-│   └── decision_log.md           # Engineering decisions with rationale
 └── requirements.txt
 ```
 
 ---
 
 ## Design Decisions
+
+A selection of non-obvious engineering decisions.
 
 1. **Hybrid sentiment engine (FinBERT + LLM)** — FinBERT was chosen for historical backfill after discovering LLM non-determinism (3.61% result variance between identical runs). LLM is retained for daily reports to preserve human-readable reasoning.
 
@@ -292,7 +298,7 @@ This matters because the current production choice (4a baseline) was made after 
 
 ## Author
 
-[@<github-oscar940327>](https://github.com/oscar940327)
+[@<github-oscar940327](https://github.com/oscar940327)
 
 ---
 

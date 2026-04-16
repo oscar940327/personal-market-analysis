@@ -23,6 +23,10 @@
 
 ## 核心發現
 
+開發過程中有三個實驗發現促成了設計轉向。每個發現都代表一個被證偽的假設。
+
+![4-Year Cross-Bear-Market Comparison](docs/images/returns_comparison.png)
+
 ### 1. LLM 情緒過濾弊大於利
 
 4 年、14 檔美股的回測顯示，把 LLM 情緒當作進場過濾條件，平均報酬比純技術面基準 **低 37.65%**。原本的「sentiment threshold」設計被廢除，改成只在極端值觸發的「緊急平倉」用途。
@@ -34,6 +38,8 @@
 | 4c + 大盤狀態倉位 | +53.07% | 2 / 14 |
 
 ### 2. 大盤狀態倉位降低回撤，但犧牲了報酬
+
+![Return vs Drawdown Trade-off](docs/images/return_vs_drawdown.png)
 
 基於大盤狀態的動態倉位（牛市 80% / 中性 50% / 熊市 20%）確實讓平均最大回撤 **降低了 10.74 個百分點**，但同時也讓累積報酬減少 61%。Regime 系統在「熊市轉牛市」的轉折期反應太慢，錯過了反彈的主要段落。
 
@@ -118,6 +124,8 @@
 ---
 
 ## 實驗結果
+
+![TSLA Case Study](docs/images/tsla_bear_market_case.png)
 
 ### 跨熊市對照測試（2022-01 至 2026-04，14 檔美股）
 
@@ -250,15 +258,14 @@ oscar-market-analyst/
 │   └── daily_report.py        # 主要入口
 ├── tests/
 │   └── test_phase4c_comparison.py  # 三策略對照測試
-├── docs/
-│   ├── experimental_results.md   # 完整實驗報告
-│   └── decision_log.md           # 設計決策日誌
 └── requirements.txt
 ```
 
 ---
 
 ## 設計決策
+
+以下列出幾個較不直觀的工程決策。
 
 1. **混搭情緒引擎（FinBERT + LLM）** — 選擇 FinBERT 做歷史回填是在發現 LLM 的非決定性之後才決定的（見 Finding 3）。每日報告仍使用 LLM，因為它能產生人類可讀的推理文字，讓使用者更容易理解訊號。
 
