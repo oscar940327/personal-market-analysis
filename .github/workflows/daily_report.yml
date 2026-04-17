@@ -2,9 +2,11 @@ name: Daily report
 
 on:
   schedule:
-    # cron 是 UTC；台灣 08:10 = UTC 00:10
-    - cron: "0 12 * * *"
+    - cron: "0 12 * * 1-5"  # UTC 12:00 週一到週五（台灣 20:00）
   workflow_dispatch: {}
+
+permissions:
+  contents: write  # 允許 push 回 repo
 
 jobs:
   run:
@@ -21,39 +23,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Restore DB cache
-        uses: actions/cache@v4
-        with:
-          path: data/db
-          key: marketdb-${{ github.run_id }}
-          restore-keys: |
-            marketdb-
-
       - name: Write config/.env from secrets
         run: |
           mkdir -p config
-          cat > config/.env << 'EOF'
+          cat > config/.env << EOF
           TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}
           OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
           LLM_MODEL=openrouter/deepseek/deepseek-chat-v3-0324
           EOF
-
-      - name: Verify config/.env (no secret values)
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from dotenv import dotenv_values
-
-          p = Path("config/.env")
-          print("config/.env exists:", p.exists())
-          if p.exists():
-              print("config/.env size:", p.stat().st_size)
-
-          vals = dotenv_values(p) if p.exists() else {}
-          for k in ["TAVILY_API_KEY", "OPENROUTER_API_KEY", "LLM_MODEL"]:
-              v = vals.get(k)
-              print(k, "SET" if v else "MISSING")
-          PY
 
       - name: Run daily report
         env:
@@ -63,9 +40,22 @@ jobs:
         run: |
           python pipeline/daily_report.py --preview --no-email
 
+      - name: Track signals
+        run: |
+          python track_signals.py
+
+      - name: Commit results back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/signal_log.csv data/db/market.db report/ || true
+          git diff --cached --quiet && echo "No changes to commit" || \
+            git commit -m "data: daily signal tracking $(date +%Y-%m-%d)" && \
+            git push
+
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
         with:
-          name: report
-          path: report/report_*.html
-          if-no-files-found: error
+          name: report-${{ github.run_id }}
+          path: report/
+          if-no-files-found: warn

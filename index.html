@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Oscar Market Analyst — Latest Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 20px;
+            text-align: center;
+            color: #24292e;
+        }
+        h1 { color: #0366d6; }
+        a { color: #0366d6; text-decoration: none; font-weight: 600; }
+        a:hover { text-decoration: underline; }
+        .reports { margin-top: 30px; text-align: left; }
+        .reports a { display: block; padding: 8px 0; }
+        .note { color: #586069; font-size: 13px; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <h1>Oscar Market Analyst</h1>
+    <p>Daily trading signal reports</p>
+
+    <div class="reports" id="report-list">
+        <p>Loading reports...</p>
+    </div>
+
+    <p class="note">
+        Reports are generated automatically by GitHub Actions.<br>
+        Source: <a href="https://github.com/" id="repo-link">GitHub Repo</a>
+    </p>
+
+    <script>
+    // 自動列出 report/ 資料夾下的 HTML 檔案
+    // GitHub Pages 沒有目錄列表功能，所以我們用一個簡單的方法：
+    // 嘗試載入最近 30 天的報告，看哪些存在
+    const container = document.getElementById('report-list');
+    const reports = [];
+
+    function checkReport(dateStr) {
+        return fetch(`report/report_${dateStr}.html`, { method: 'HEAD' })
+            .then(r => {
+                if (r.ok) reports.push(dateStr);
+            })
+            .catch(() => {});
+    }
+
+    async function loadReports() {
+        const promises = [];
+        const today = new Date();
+        for (let i = 0; i < 30; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            promises.push(checkReport(dateStr));
+        }
+        await Promise.all(promises);
+
+        reports.sort().reverse();
+
+        if (reports.length === 0) {
+            container.innerHTML = '<p>No reports found yet. Check back after the first daily run.</p>';
+            return;
+        }
+
+        container.innerHTML = reports.map(d =>
+            `<a href="report/report_${d}.html">📊 Report ${d}</a>`
+        ).join('');
+    }
+
+    loadReports();
+    </script>
+</body>
+</html>
